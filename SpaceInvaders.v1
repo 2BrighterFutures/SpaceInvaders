@@ -1,0 +1,126 @@
+import pygame
+import math
+import random
+
+#Global Variables
+#Title / Icon / Screen / Init
+screen = pygame.display.set_mode((800,600))
+pygame.init()
+pygame.display.set_caption("SpaceInvaders")
+icon = pygame.image.load('3069111.png')
+pygame.display.set_icon(icon)
+enemynums = 5
+enemyLst = []
+
+
+#Creating Player Class
+class Player():
+             def __init__(self):
+                          self.playerImg = pygame.image.load('aircraft.png')
+                          self.playerX = 370
+                          self.playerY = 480
+                          self.playerX_change = 0    
+                          self.score = 0
+                          
+             def drawplayer(self):
+                          player1.playerX += player1.playerX_change
+                          screen.blit(self.playerImg, (self.playerX,self.playerY))    
+                                     
+             
+class Enemy():
+             def __init__(self):
+                          self.enemyImg = pygame.image.load('ufo.png')
+                          self.enemyX = random.randint(20,780)
+                          self.enemyY = random.randint(50,150)
+                          self.enemyX_change = .3
+                          self.enemyY_change = 32       
+
+             def drawenemy(self):
+                          self.enemyX += self.enemyX_change
+                          if self.enemyX <= 0:
+                                       self.enemyX_change = .3
+                                       self.enemyY += self.enemyY_change
+                          elif self.enemyX >= 799:
+                                       self.enemyX_change = -.3
+                                       self.enemyY += self.enemyY_change        
+                          screen.blit(self.enemyImg, (self.enemyX,self.enemyY))
+                          
+                          
+class Bullet():
+             def __init__(self):
+                          self.bulletImg = pygame.image.load('bullet.png')
+                          self.bulletX = 0
+                          self.bulletY = 480
+                          self.bulletY_change = -.3
+                          self.bullet_state = "ready"
+                          
+             
+             def fire_bullet(self,x,y):
+                          self.bullet_state = "Fire"
+                          screen.blit(self.bulletImg, (x + 4,y - 32))   
+
+             
+             def move_bullet(self,x):
+                          self.bulletY += self.bulletY_change
+                          screen.blit(self.bulletImg,(x,self.bulletY))
+                          if self.bulletY<= 0:
+                                       self.bulletY = 480
+                                       self.bullet_state = "ready"
+             
+             def kaboom(self,enemyX,enemyY):
+                          distance = math.sqrt(((math.pow(enemyX - self.bulletX,2)) + math.pow(enemyY - self.bulletY,2)))
+                          if distance < 27:
+                                       return True                          
+                                                    
+                          
+                                                                 
+
+
+
+#Game Loop
+running = True
+player1 = Player()
+bullets = Bullet()
+aliens = [Enemy() for i in range(enemynums)]
+
+while running:
+             screen.fill((0,0,0))
+           
+             for event in pygame.event.get():
+                          if event.type == pygame.QUIT:
+                                       running = False
+                          if event.type == pygame.KEYDOWN:
+                                       if event.key == pygame.K_LEFT:
+                                                    player1.playerX_change = -.5
+                                       if event.key == pygame.K_RIGHT:
+                                                    player1.playerX_change = .5 
+                                       if event.key == pygame.K_UP:   
+                                                    if bullets.bullet_state == "ready" :
+                                                                 bullets.bulletX = player1.playerX
+                                                                 bullets.fire_bullet(player1.playerX,bullets.bulletY)
+                          if event.type == pygame.KEYUP:
+                                       if event.key == pygame.K_UP:
+                                                    bullets.bulletY_change = -.3                                       
+                                       if event.key == pygame.K_LEFT or event.key == pygame.K_RIGHT:
+                                                    player1.playerX_change = 0  
+
+                          
+             player1.drawplayer()
+                         
+             for alien in aliens:
+                          alien.drawenemy()
+                          kabooms = bullets.kaboom(alien.enemyX, alien.enemyY)
+                          if kabooms:
+                                       bullets.bulletY = 480
+                                       bullets.bullet_state = "ready"
+                                       player1.score += 1
+                                       print(player1.score)
+                                       alien.enemyX = random.randint(32,150)
+                                       alien.enemyY = random.randint(0 , 100)                 
+             
+             if bullets.bullet_state == "Fire" :
+                          bullets.move_bullet(bullets.bulletX)
+             
+             
+             
+             pygame.display.update()
